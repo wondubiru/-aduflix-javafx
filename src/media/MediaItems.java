@@ -7,18 +7,32 @@ public abstract class MediaItems implements Comparable<MediaItems>, Playable{
     private double rating;
     private double duration;
     private static int totalWatched = 0;
-    public MediaItems(String title, String genre, double rating, double duration){
-        this(title, genre);
 
+    /**
+     * Constructor for MediaItems class.
+     * Initializes the title, genre, rating, and duration of the media item.
+     *
+     * @param title    The title of the media item.
+     * @param genre    The genre of the media item.
+     * @param rating   The rating of the media item (0.0 to 10.0).
+     * @param duration The duration of the media item in hours.
+     */
+    public MediaItems(String title, String genre, double rating, double duration){
         this.rating = rating;
-    }
-    MediaItems(String title, String genre){
         this.title = title;
         this.genre = genre;
-        this.duration = 0.0;
-        rating = 0.0; // default rating
+        this.duration = duration;
     }
 
+    public MediaItems(String title, String genre){
+       this(title, genre, 0.0, 2);
+    }
+
+    /**
+     * Gets the title of the media item.
+     *
+     * @return The title of the media item.
+     */
 
     public String  getTitle() {return title;}
 
@@ -32,6 +46,7 @@ public abstract class MediaItems implements Comparable<MediaItems>, Playable{
         return totalWatched;
     }
 
+
     public void setTitle(String title){
         this.title = title;
     }
@@ -41,12 +56,50 @@ public abstract class MediaItems implements Comparable<MediaItems>, Playable{
     }
 
     public void setRating(double rating){
-        if(rating >= 0 && rating <= 10){
+        if(rating > 0 && rating < 10){
             this.rating = rating;}
         else {
             System.out.println("rating can only be within the range(0-10) ");
         }
     }
+
+    public static MediaItems parse(String line) {
+        try {
+            String[] parts = line.split(",");
+
+            switch (parts[0].toLowerCase()) {
+                case "movie":
+                    return new Movie(
+                            parts[1],                             // title
+                            parts[2],                             // genre
+                            Double.parseDouble(parts[3]),         // rating
+                            Double.parseDouble(parts[4]),         // duration
+                            parts[5]                              // director
+                    );
+                case "series":
+                    return new Series(
+                            parts[1],
+                            parts[2],
+                            Double.parseDouble(parts[3]),
+                            Double.parseDouble(parts[4]),
+                            Integer.parseInt(parts[5]),
+                            Integer.parseInt(parts[6])
+                    );
+                case "documentary":
+                    return new Documentary(
+                            parts[1],
+                            parts[2],
+                            Double.parseDouble(parts[3]),
+                            Double.parseDouble(parts[4]),
+                            parts[5]
+                    );
+            }
+        } catch (Exception e) {
+            System.out.println(" Error parsing line: " + line);
+        }
+        return null;
+    }
+
     public void setDuration(double duration){
         if(duration > 0){
             this.duration = duration;
@@ -61,8 +114,7 @@ public abstract class MediaItems implements Comparable<MediaItems>, Playable{
     @Override
     public int compareTo(MediaItems other){
 
-        return Double.compare(this.rating, rating);
-
+        return Double.compare(this.rating, other.rating);
     }
     @Override
     public String toString(){

@@ -1,10 +1,9 @@
 package media;
-
 import media.MediaItems;
 import media.Playable;
 import media.Rateable;
 
-public class Series extends MediaItems implements Playable, Rateable {
+public class Series extends MediaItems implements Playable, Rateable, Savable {
 
     private int numberOfEpisodes;
     private int seasons;
@@ -14,7 +13,7 @@ public class Series extends MediaItems implements Playable, Rateable {
         this.numberOfEpisodes = numberOfEpisodes;
         this.seasons = seasons;
     }
-// overloaded constructor
+
     public Series(String title, String genre){
         this(title, genre, 0.0, 0, 0, 0);
     }
@@ -35,7 +34,12 @@ public class Series extends MediaItems implements Playable, Rateable {
 
     @Override
     public String getDetails() {
-        return "";
+        return "🎬 Movie: " + getTitle() +
+                "\nGenre: " + getGenre() +
+                "\n Number of seasons: " + numberOfEpisodes +
+                "\nNumber of episodes: " + seasons +
+                "\nRating: " + getRating() +
+                "\nDuration: " + getDuration() + " minutes";
     }
 
     public int getNumberOfEpisodes() {

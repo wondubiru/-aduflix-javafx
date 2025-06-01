@@ -5,13 +5,21 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import logic.RecommendationEngine;
 import user.User;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
+
 public class MediaAppGUI extends Application {
 
+    /**
+     * Main entry point for the ADUflix JavaFX application.
+     * Initializes the media library, user, and GUI components.
+     *
+     * @param username The username of the logged-in user.
+     */
     private MediaLibrary library;
     private User user;
     private String currentUsername;
@@ -19,11 +27,19 @@ public class MediaAppGUI extends Application {
     private ListView<MediaItems> mediaListView;
     private TextArea outputArea;
 
+    /**
+     * Constructor for MediaAppGUI.
+     * Initializes the GUI with the given username.
+     *
+     * @param username The username of the user currently logged in.
+     */
+
     public MediaAppGUI(String username) {
         this.currentUsername = username;
     }
 
     @Override
+
     public void start(Stage primaryStage) {
         System.out.println("\uD83C\uDF89 JavaFX is starting!");
 
@@ -56,6 +72,7 @@ public class MediaAppGUI extends Application {
         Label userInfoLabel = new Label("\uD83D\uDC64 Logged in as: " + user.getName() + " (" + user.getEmail() + ")");
         Label sortLabel = new Label("\uD83D\uDCCA Sorted by rating (highest first)");
         Label listLabel = new Label("\uD83D\uDCC2 Select a Media Item Below:");
+
 
         HBox buttonBar = new HBox(10, watchButton, rateButton, recommendButton, historyButton, addMediaButton, logoutBtn);
         VBox root = new VBox(10, userInfoLabel, sortLabel, listLabel, mediaListView, buttonBar, outputArea);
@@ -106,11 +123,14 @@ public class MediaAppGUI extends Application {
             showAlert("No Media Selected", "Select something before rating.");
         }
     }
-
     private void handleRecommendations() {
-        ArrayList<MediaItems> recs = user.getRecommendations(library.getAllMedia(), 7.0, 180);
+        ArrayList<MediaItems> recs = RecommendationEngine.recommend(
+                library.getAllMedia(),
+                user.getWatchHistory()
+        );
+
         if (recs.isEmpty()) {
-            outputArea.setText("No recommendations at this time.");
+            outputArea.setText("");
         } else {
             StringBuilder sb = new StringBuilder("\uD83C\uDFAF Recommended for You:\n");
             for (MediaItems item : recs) {
@@ -120,17 +140,21 @@ public class MediaAppGUI extends Application {
         }
     }
 
+
     private void handleHistory() {
+        user.importHistory("Watch_history_" + currentUsername + ".txt");
+
         if (user.getWatchHistory().isEmpty()) {
             outputArea.setText("Watch history is empty.");
         } else {
-            StringBuilder sb = new StringBuilder("\uD83D\uDCDC Your Watch History:\n");
+            StringBuilder sb = new StringBuilder(" Your Watch History:\n");
             for (MediaItems item : user.getWatchHistory()) {
                 sb.append("- ").append(item).append("\n");
             }
             outputArea.setText(sb.toString());
         }
     }
+
 
     private void handleLogout() {
         user.exportHistory("Watch_history_" + currentUsername + ".txt");
@@ -164,16 +188,56 @@ public class MediaAppGUI extends Application {
         TextField genreField = new TextField();
         TextField ratingField = new TextField();
         TextField durationField = new TextField();
+        Label extra1Label = new Label("Extra 1:");
         TextField extra1 = new TextField();
+
+        Label extra2Label = new Label("Extra 2:");
         TextField extra2 = new TextField();
 
+        // Layout
         grid.add(new Label("Type:"), 0, 0); grid.add(typeBox, 1, 0);
         grid.add(new Label("Title:"), 0, 1); grid.add(titleField, 1, 1);
         grid.add(new Label("Genre:"), 0, 2); grid.add(genreField, 1, 2);
         grid.add(new Label("Rating:"), 0, 3); grid.add(ratingField, 1, 3);
         grid.add(new Label("Duration:"), 0, 4); grid.add(durationField, 1, 4);
-        grid.add(new Label("Extra 1:"), 0, 5); grid.add(extra1, 1, 5);
-        grid.add(new Label("Extra 2 (for Series):"), 0, 6); grid.add(extra2, 1, 6);
+        grid.add(extra1Label, 0, 5); grid.add(extra1, 1, 5);
+        grid.add(extra2Label, 0, 6); grid.add(extra2, 1, 6);
+
+        // === Dynamic label & field logic ===
+        typeBox.setOnAction(e -> {
+            String selected = typeBox.getValue();
+            switch (selected) {
+                case "movie" -> {
+                    extra1Label.setText("Director:");
+                    extra1.setPromptText("e.g. Johan");
+                    extra1Label.setVisible(true);
+                    extra1.setVisible(true);
+                    extra2Label.setVisible(false);
+                    extra2.setVisible(false);
+                }
+                case "series" -> {
+                    extra1Label.setText("Episodes:");
+                    extra1.setPromptText("e.g. 10");
+                    extra2Label.setText("Seasons:");
+                    extra2.setPromptText("e.g. 3");
+                    extra1Label.setVisible(true);
+                    extra1.setVisible(true);
+                    extra2Label.setVisible(true);
+                    extra2.setVisible(true);
+                }
+                case "documentary" -> {
+                    extra1Label.setText("Subject:");
+                    extra1.setPromptText("e.g. Space");
+                    extra1Label.setVisible(true);
+                    extra1.setVisible(true);
+                    extra2Label.setVisible(false);
+                    extra2.setVisible(false);
+                }
+            }
+        });
+
+        // Initial trigger to show correct labels
+        typeBox.getOnAction().handle(null);
 
         dialog.getDialogPane().setContent(grid);
 
@@ -184,43 +248,43 @@ public class MediaAppGUI extends Application {
                     String title = titleField.getText();
                     String genre = genreField.getText();
                     double rating = Double.parseDouble(ratingField.getText());
-                    int duration = Integer.parseInt(durationField.getText());
+                    double duration = Double.parseDouble(durationField.getText());
+
+                    if (title.isBlank() || genre.isBlank()) {
+                        showAlert("Input Error", "Title and genre must not be empty.");
+                        return null;
+                    }
 
                     return switch (type) {
-                        case "movie" -> new Movies(title, genre, rating, duration, extra1.getText());
-                        case "series" -> new Series(title, genre, rating, duration, Integer.parseInt(extra1.getText()), Integer.parseInt(extra2.getText()));
+                        case "movie" -> new Movie(title, genre, rating, duration, extra1.getText());
+                        case "series" -> new Series(
+                                title, genre, rating, duration,
+                                Integer.parseInt(extra1.getText()),
+                                Integer.parseInt(extra2.getText()));
                         case "documentary" -> new Documentary(title, genre, rating, duration, extra1.getText());
                         default -> null;
                     };
-
                 } catch (Exception e) {
-                    showAlert("Input Error", "Please enter valid data.");
+                    showAlert("Input Error", "Please enter valid values (e.g. numeric rating/duration).");
                 }
             }
             return null;
         });
 
         dialog.showAndWait().ifPresent(media -> {
+
             library.getAllMedia().add(media);
             mediaListView.getItems().add(media);
-            appendToMediaFile(media);
+            library.saveMediaToFile(media);
         });
     }
 
-    private void appendToMediaFile(MediaItems media) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("src/data/media.txt", true))) {
-            if (media instanceof Movies m) {
-                writer.write("movie," + m.getTitle() + "," + m.getGenre() + "," + m.getRating() + "," + m.getDuration() + "," + m.getDirector());
-            } else if (media instanceof Series s) {
-                writer.write("series," + s.getTitle() + "," + s.getGenre() + "," + s.getRating() + "," + s.getDuration() + "," + s.getNumberOfEpisodes() + "," + s.getSeasons());
-            } else if (media instanceof Documentary d) {
-                writer.write("documentary," + d.getTitle() + "," + d.getGenre() + "," + d.getRating() + "," + d.getDuration() + "," + d.getSubject());
-            }
-            writer.newLine();
-        } catch (IOException e) {
-            showAlert("File Error", "Could not save to media.txt");
-        }
-    }
+    /**
+     * Displays an alert dialog with the given title and message.
+     *
+     * @param title   The title of the alert dialog.
+     * @param message The message to display in the alert dialog.
+     */
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

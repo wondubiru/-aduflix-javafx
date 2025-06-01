@@ -2,34 +2,38 @@ package logic;
 
 import media.MediaItems;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 public class RecommendationEngine {
 
-    public static ArrayList<MediaItems> recommend(
-            ArrayList<MediaItems> allMedia,
-            ArrayList<MediaItems> watchHistory
-    ) {
-        ArrayList<MediaItems> recommendations = new ArrayList<>();
-        Set<String> watchedTitles = new HashSet<>();
-        Set<String> preferredGenres = new HashSet<>();
+    public static ArrayList<MediaItems> recommend(ArrayList<MediaItems> allMedia, ArrayList<MediaItems> watchHistory) {
 
-        // 1. Gather watched titles and genres
-        for (MediaItems watched : watchHistory) {
-            watchedTitles.add(watched.getTitle());
-            preferredGenres.add(watched.getGenre());
+        // This method generates recommendations based on the user's watch history and preferences.
+        // It filters media items based on genre, rating, duration, and whether they have already been watched.
+
+        ArrayList<MediaItems> recommendations = new ArrayList<>();
+        ArrayList<String> likedGenres = new ArrayList<>();
+
+        for (MediaItems item : watchHistory) {
+            String genre = item.getGenre();
+            if (!likedGenres.contains(genre)) {
+                likedGenres.add(genre);
+            }
         }
 
-        // 2. Recommend items NOT in history, but matching genre + filters
         for (MediaItems media : allMedia) {
-            if (watchedTitles.contains(media.getTitle())) continue;
+            boolean genreMatch = likedGenres.contains(media.getGenre());
+            boolean goodRating = media.getRating() >= 3.5;
+            boolean shortEnough = media.getDuration() <= 10.4;
+            boolean alreadyWatched = false;
 
-            boolean matchGenre = preferredGenres.contains(media.getGenre());
-            boolean matchRating = media.getRating() >= 3.5;
-            boolean matchDuration = media.getDuration() <= 180;
+            for (MediaItems watched : watchHistory) {
+                if (watched.getTitle().equalsIgnoreCase(media.getTitle())) {
+                    alreadyWatched = true;
+                    break;
+                }
+            }
 
-            if (matchGenre && matchRating && matchDuration) {
+            if (genreMatch && goodRating && shortEnough && !alreadyWatched) {
                 recommendations.add(media);
             }
         }

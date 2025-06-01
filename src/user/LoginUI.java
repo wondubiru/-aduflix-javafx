@@ -56,7 +56,7 @@ public class LoginUI extends Application {
 
         boolean success = AuthManager.signIn(username, password);
         if (success) {
-            statusLabel.setText("✅ Login successful!");
+            statusLabel.setText(" Login successful!");
             launchMainApp(username);
         } else {
             showAlert("Login Failed", "Invalid username or password.");
@@ -69,7 +69,7 @@ public class LoginUI extends Application {
 
         try {
             AuthManager.signUp(username, password);
-            statusLabel.setText("✅ Account created. You can now log in.");
+            statusLabel.setText(" Account created. You can now log in.");
         } catch (Exception e) {
             showAlert("Signup Failed", e.getMessage());
         }

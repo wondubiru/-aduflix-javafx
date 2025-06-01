@@ -1,8 +1,10 @@
 package media;
 
-public class Documentary extends MediaItems implements Playable, Rateable{
+public class Documentary extends MediaItems implements Playable, Rateable, Savable{
     private String subject;
-    public Documentary(String title, String genre, double rating, double duration, String subje){
+
+    //constractor
+    public Documentary(String title, String genre, double rating, double duration, String subject){
         super(title, genre, rating, duration);
         this.subject = subject;
     }
@@ -35,7 +37,7 @@ public class Documentary extends MediaItems implements Playable, Rateable{
     }
 
     public void play(){
-        System.out.println("plating Series " + getTitle());
+        System.out.println("playing Documentary " + getTitle());
     }
 
 }

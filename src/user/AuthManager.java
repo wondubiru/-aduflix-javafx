@@ -3,7 +3,7 @@ package user;
 import java.io.*;
 
 public class AuthManager {
-    private static final String USER_FILE = "C:\\Users\\wondu\\IdeaProjects\\fx_app\\src\\data\\ media.txt"; // Fix path
+    private static final String USER_FILE = "data/users.txt"; // Fix path
 
     // === Sign up ===
     public static void signUp(String userName, String password) throws Exception {

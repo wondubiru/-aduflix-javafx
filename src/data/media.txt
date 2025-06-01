@@ -1,3 +1,5 @@
-movie,apocalypse,drame,0.0,0.0,later
-movie,jamie vard,cr7,10.0,0.0,hey
-movie,mamit,hey,4.5,0.0,janie
+movie,hundred years later,drama,8.0,1.2,jack
+series,wondu,shalom,10.0,3.4,4,44
+series,Nate,Nate,91.0,199.0,5,24
+movie,drama,19,10.0,60.0,Nate
+movie,one hundred years later,action,10.0,12.0,jack chn

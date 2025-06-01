@@ -1,22 +1,17 @@
 package media;
 
-import media.MediaItems;
-
-import java.util.ArrayList;
-
-public class Movies extends MediaItems implements Playable, Savable, Rateable{
+public class Movie extends MediaItems implements Playable, Savable, Rateable{
     private String director;
 
-    public Movies(String title, String genre, double rating, double duration, String directory){
+    public Movie(String title, String genre, double rating, double duration, String directory){
         super(title, genre, rating, duration);
         this.director = directory;
     }
-    public Movies(String title, String genre, String director){
-        super(title, genre);
-        this.director = director;
+    public Movie(String title, String genre, String director){
+        this(title, genre, 0.0, 0.0, director);
     }
     public void play(){
-        System.out.println("playing the Movie: " + super.getTitle());}
+        System.out.println("playing the Movie: " + getTitle());}
 
 
     @Override
